@@ -1,0 +1,52 @@
+<HTML>
+<HEAD><TITLE>ModelWeb Results</TITLE></HEAD>
+<BODY>
+<Body><center><font size=6 color=red>Vitmo ModelWeb Browser Results </font><br>
+<font size=5 color=red><i><b>cgm</b></i> model profile parameters </font></center>
+<p><b> Input parameters:</b><br>
+Coordinate transformation: GEO-->CGM<br>
+Year= 2000<br>
+latitude= 45.00, longitude= 270.0, height= 100.<p>
+Profile name: Height<BR>
+Profile parameters: start= 100., stop= 1000., step= 50.  <hr>
+<pre>   Selected parameters are:
+1 Height, km
+2 SP_CGM_Latitude, deg.
+3 SP_CGM_Longitude, deg.
+
+       1      2       3
+    100.  55.83  339.77
+    150.  55.82  339.76
+    200.  55.80  339.75
+    250.  55.78  339.74
+    300.  55.77  339.73
+    350.  55.75  339.72
+    400.  55.73  339.71
+    450.  55.72  339.70
+    500.  55.70  339.69
+    550.  55.69  339.69
+    600.  55.67  339.68
+    650.  55.66  339.67
+    700.  55.64  339.66
+    750.  55.63  339.65
+    800.  55.62  339.64
+    850.  55.60  339.63
+    900.  55.59  339.62
+    950.  55.58  339.61
+   1000.  55.57  339.61
+</pre><HR>
+<ADDRESS>
+<table>
+<tr>
+<td>
+Send questions about WWW access to this model to 
+<A HREF="mailto:Natalia.E.Papitashvili@nasa.gov">
+Dr. Natalia Papitashvili</A><br>
+GSFC, Code 672, Greenbelt, MD 20771.
+</ADDRESS>
+</td></tr>
+</table>
+<HR>
+<H6>Last Update: June 18, 2014, NEP.</H6>
+</BODY>
+</HTML>

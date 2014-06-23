@@ -1,0 +1,65 @@
+Required input parameters
+Year= 2014., Month= 01, Day= 01, Hour=12.0,
+Time_type = Universal
+Coordinate_type = Geographic
+Latitude= -11., Longitude= 290., Height= 100.
+Prof. parameters: Start= 60. Stop= 1500. Step= 40.
+
+Optional input parameters:
+Sunspot number(Rz12) =not specified
+Ionospheric index(IG12) =not specified
+Upper limit for Electron content = not specifyed
+F peak model = URSI
+Ne Topside = NeQuick
+foF2 Storm model = on
+Bottomside Thickness = B0 Table
+F1 occurrence probability = Scotto-1997 no L
+D-Region Ne = IRI-95
+Topside Te = TTSA-2000
+Ion Composition = DS95/TT05
+A value of -1 indicates that the parameter is not available for the specified range
+TEC=-1, means you have not entered an upper boundary height in the OPTIONAL INPUT section.
+
+   Selected parameters are:
+1 Height, km
+2 Electron_density_Ne, m-3
+3 Ratio_of_Ne_to_NmF2
+
+       1            2      3
+   60.00 -0.10000E+01 -1.000
+  100.00  0.69089E+11  0.065
+  140.00  0.30140E+12  0.285
+  180.00  0.60793E+12  0.575
+  220.00  0.82291E+12  0.779
+  260.00  0.99229E+12  0.939
+  300.00  0.10569E+13  1.000
+  340.00  0.95223E+12  0.901
+  380.00  0.75510E+12  0.714
+  420.00  0.56766E+12  0.537
+  460.00  0.42151E+12  0.399
+  500.00  0.31538E+12  0.298
+  540.00  0.23982E+12  0.227
+  580.00  0.18589E+12  0.176
+  620.00  0.14689E+12  0.139
+  660.00  0.11823E+12  0.112
+  700.00  0.96797E+11  0.092
+  740.00  0.80478E+11  0.076
+  780.00  0.67847E+11  0.064
+  820.00  0.57919E+11  0.055
+  860.00  0.50003E+11  0.047
+  900.00  0.43608E+11  0.041
+  940.00  0.38378E+11  0.036
+  980.00  0.34055E+11  0.032
+ 1020.00  0.30444E+11  0.029
+ 1060.00  0.27400E+11  0.026
+ 1100.00  0.24812E+11  0.023
+ 1140.00  0.22594E+11  0.021
+ 1180.00  0.20680E+11  0.020
+ 1220.00  0.19017E+11  0.018
+ 1260.00  0.17562E+11  0.017
+ 1300.00  0.16283E+11  0.015
+ 1340.00  0.15152E+11  0.014
+ 1380.00  0.14146E+11  0.013
+ 1420.00  0.13249E+11  0.013
+ 1460.00  0.12444E+11  0.012
+ 1500.00  0.11719E+11  0.011

@@ -1,0 +1,64 @@
+default_params = {
+'model' : 'iri_2012',  'year' : year,         'month' : month,
+'day' : day,           'time_flag' : 0,       'hour' : hour,
+'geo_flag' : 0,        'latitude' : lat,      'longitude' : lon,
+'height' : 100,        'profile' : 1,         'start' : start,
+'stop' : stop,         'step' : step,         'format' : 0,
+'sun_n' : '',          'ion_n' : '',          'radio_f' : '',
+'radio_f81' : '',      'htec_max' : '',       'ne_top' : 0,
+'imap' : 0,            'ffof2' : 0,           'ib0' : 0,
+'probab' : 0,          'ffoE' : 0,            'dreg' : 0,
+'tset' : 0,            'icomp' : 0,           'nmf2' : 0,
+'hmf2' : 0,            'user_nme' : 0,        'user_hme' : 0,
+'format' : 0,          'vars' : 7,            'vars' : 17,
+'vars' : 18,           'linestyle' : 'solid', 'charsize' : '',
+'symbol' : 2,          'symsize' : '',        'yscale' : 'Linear',
+'xscale' : 'Linear',   'imagex' : 640,        'imagey' : 480,
+}
+
+
+
+model = 'iri_2012';
+year = 2000;
+month = 1;
+day = 1;
+time_flag = 0;
+hour = 1;
+geo_flag = 0;
+latitude = lat;
+longitude = 0;
+height = 100;
+profile = 1;
+start = 60;
+stop = 1500;
+step = 40;
+format = 0;
+sun_n = '';
+ion_n = '';
+radio_f = '';
+radio_f81 = '';
+htec_max = '';
+ne_top = 0;
+imap = 0;
+ffof2 = 0;
+ib0 = 0;
+probab = 0;
+ffoE = 0;
+dreg = 0;
+tset = 0;
+icomp = 0;
+nmf2 = 0;
+hmf2 = 0;
+user_nme = 0;
+user_hme = 0;
+format = 0;
+linestyle = 'solid';
+charsize = '';
+symbol = 2;
+symsize = '';
+yscale = 'Linear';
+xscale = 'Linear';
+imagex = 640;
+imagey = 480;
+
+vars = [7, 17];
