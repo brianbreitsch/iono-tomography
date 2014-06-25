@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+    xmlns:latexdraw="http://latexdraw.sourceforge.net/namespaces/latexdraw"
+    version="1.1" baseProfile="full">
+    <g>
+        <g latexdraw:type="joinedLines" id="id2">
+            <polyline points="207.0,251.0 475.0,251.0 475.0,251.0 "
+                stroke-width="2.0" stroke="black" fill="none" latexdraw:rotationAngle="0.0"/>
+        </g>
+        <g latexdraw:type="joinedLines" id="id5">
+            <polyline
+                points="234.0,136.0 356.90065180387774,251.3057255427948 410.0,391.0 "
+                stroke-width="2.0" stroke="black" fill="none"
+                stroke-linecap="round"
+                stroke-dasharray="1, 7.291666666666667" latexdraw:rotationAngle="0.0"/>
+        </g>
+        <g latexdraw:type="joinedLines" id="id11">
+            <polyline points="355.0,129.0 355.0,389.0 355.0,389.0 "
+                stroke-width="2.0" stroke="black" fill="none"
+                stroke-dasharray="8.819444444444445, 5.291666666666667" latexdraw:rotationAngle="0.0"/>
+        </g>
+        <g latexdraw:type="arc" id="id16" transform="rotate(2.7524854002686836) translate(11.738712946988699 -17.387523674801457)">
+            <path
+                d="M 353.6877748875024 215.07041240628715 A 38.0 38.0 0.0 0 0 326.9885489356004 228.45747145997484 "
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="black" fill="none" latexdraw:rotationAngle="0.04803993284776254"/>
+        </g>
+        <g latexdraw:type="arc" id="id27" transform="rotate(189.13445356866194) translate(-756.6278390399066 -483.55874271807903)">
+            <path
+                d="M 357.29521183289285 245.05387416890363 A 27.0 27.0 0.0 0 0 340.794727171424 252.0608916639408 "
+                latexdraw:borderPos="outer" stroke-width="2.0"
+                stroke="black" fill="none" latexdraw:rotationAngle="3.3010189437334896"/>
+        </g>
+        <g latexdraw:type="text" id="id48" fill="black" latexdraw:position="bl">
+            <text x="328.0" y="202.0"><![CDATA[$\theta_1$]]></text>
+        </g>
+        <g latexdraw:type="text" id="id52" fill="black" latexdraw:position="bl">
+            <text x="369.0" y="363.0"><![CDATA[$\theta_2$]]></text>
+        </g>
+        <g latexdraw:type="text" id="id56" fill="black" latexdraw:position="bl">
+            <text x="395.0" y="224.0"><![CDATA[$n_1$]]></text>
+        </g>
+        <g latexdraw:type="text" id="id59" fill="black" latexdraw:position="bl">
+            <text x="395.0" y="290.0"><![CDATA[$n_2$]]></text>
+        </g>
+        <g latexdraw:type="text" id="id116" fill="black" latexdraw:position="bl">
+            <text x="203.0" y="333.0"><![CDATA[$\frac{\sin(\theta_1)}{\sin(\theta_2)} = \frac{v_1}{v_2} = \frac{n_2}{n_1}$]]></text>
+        </g>
+    </g>
+    <defs/>
+    <metadata>
+        <latexdraw:metadata>
+            <latexdraw:latexIncludes><![CDATA[\usepackage{amsmath,amsfonts,amsthm}]]></latexdraw:latexIncludes>
+            <latexdraw:displayXScale>true</latexdraw:displayXScale>
+            <latexdraw:displayYScale>true</latexdraw:displayYScale>
+            <latexdraw:unit>CM</latexdraw:unit>
+            <latexdraw:zoom>1.0</latexdraw:zoom>
+            <latexdraw:magneticGridStyle>CUSTOMISED</latexdraw:magneticGridStyle>
+            <latexdraw:gridGap>10</latexdraw:gridGap>
+            <latexdraw:magneticGrid>false</latexdraw:magneticGrid>
+            <latexdraw:version>3.1.0</latexdraw:version>
+            <latexdraw:size>
+                <latexdraw:width>1393</latexdraw:width>
+                <latexdraw:height>878</latexdraw:height>
+            </latexdraw:size>
+            <latexdraw:position>
+                <latexdraw:x>47.0</latexdraw:x>
+                <latexdraw:y>22.0</latexdraw:y>
+            </latexdraw:position>
+        </latexdraw:metadata>
+    </metadata>
+</svg>
