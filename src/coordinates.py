@@ -9,7 +9,7 @@ from numpy.linalg import inv, norm
 def ecef2geo( x0 ):
     '''
     Converts ECEF coordinates to geodetic coordinates, 
-    x0 is a numpY array of N ECEF coordinates with shape (N,3).
+    x0 is an ndarray of N ECEF coordinates with shape (N,3).
     
     >>> import numpy as np
     >>> geo = np.array([27.174167, 78.042222, 0])
@@ -65,7 +65,7 @@ def ecef2geo( x0 ):
 
 def ecef2enu( x0, xs ):
     '''
-    Converts satellite ECEF coordinates to user-relative ENU coordinates
+    Converts satellite ECEF coordinates to user-relative ENU coordinates.
     '''
 
     # get the lat and lon of the user position

@@ -1,3 +1,4 @@
 diarios/
 tarea/
 .ipynb_checkpoints
+*.pyc
