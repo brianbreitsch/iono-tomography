@@ -7,7 +7,8 @@
 
 import numpy as np
 from numpy.linalg import inv, norm
-
+import imp
+coordinate_utils = imp.load_source('coordinate_utils', '../src/coordinate_utils.py')
 
 def line_plane_intersection(p0, u, v0, n):
     '''
@@ -63,7 +64,7 @@ def line_quadroid_intersection(line, corners):
         v0, v1, v2, v3 = v[0,:], v[1,:], v[2,:], v[3,:]
         n = np.cross(v2 - v0, v1 - v0)
         if np.linalg.norm(np.cross(u, n)) > np.linalg.norm(n) - eps:
-            print('parallel')
+            #print('parallel')
             continue
         pnt = line_plane_intersection(p0, u, v0, n)
         # determine if intersection lies within face
@@ -146,7 +147,7 @@ def geodetic_grid_projection_matrix(lats, lons, alts, lines):
     # get grid mesh--i.e. set of points defining grid regions
     mesh = grid_mesh_from_centers(lats, lons, alts)
     shape = mesh.shape
-    mesh = geo2ecef(mesh.reshape((shape[0] * shape[1] * shape[2], 3))).reshape(shape)
+    mesh = coordinate_utils.geo2ecef(mesh.reshape((shape[0] * shape[1] * shape[2], 3))).reshape(shape)
     
     projmtx = np.zeros((n_lines, N))
     points = []
@@ -162,7 +163,7 @@ def geodetic_grid_projection_matrix(lats, lons, alts, lines):
                     for p in pnts: # TODO get rid of
                         points.append(p)
                     projmtx[l, i + j * n_lats + k * n_lats * n_lons] = np.linalg.norm(pnts[1] - pnts[0])
-    return projmtx, points
+    return projmtx, np.array(points)
 
 
 def impact_paramter(u, v):
