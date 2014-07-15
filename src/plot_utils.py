@@ -33,7 +33,7 @@ def plot_projmtx(ax, lats, lons, alts, projmtx, intersections=None, lines=None, 
     if len(intersections) > 0:
         ax.scatter3D(intersections[:,0], intersections[:,1], intersections[:,2])
 
-    colors = projmtx[0,:]#np.sum(projmtx, axis=0)
+    colors = np.sum(projmtx, axis=0)
     colors = colors.reshape((N, 1)).repeat(4, axis=1) / np.max(colors)
     colors[:,0] = 0.
     colors[:,3] = .75
@@ -55,3 +55,8 @@ def plot_projmtx(ax, lats, lons, alts, projmtx, intersections=None, lines=None, 
     if lines:
         for line in lines:
             plot_line(ax, line[0], line[1], line_tau)
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_zticks([])
+
