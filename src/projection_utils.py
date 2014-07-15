@@ -57,23 +57,21 @@ def line_quadroid_intersection(line, corners):
     
     p0, u = line
     pnts = []
-    eps = 1
+    eps = 10e6
     
     for face in faces:
         v = corners[ind_x[face], ind_y[face], ind_z[face], :]
         v0, v1, v2, v3 = v[0,:], v[1,:], v[2,:], v[3,:]
         n = np.cross(v2 - v0, v1 - v0)
         if np.linalg.norm(np.cross(u, n)) > np.linalg.norm(n) - eps:
-            print('parallel')
+            #print('parallel')
             continue
         pnt = line_plane_intersection(p0, u, v0, n)
         # determine if intersection lies within face
-        norm = np.linalg.norm(np.cross(v2 - v0, v1 - v0)) + np.linalg.norm(np.cross(v2 - v3, v1 - v3))
-        area =  np.linalg.norm(np.cross(pnt - v0, v1 - v0)) + \
-                np.linalg.norm(np.cross(pnt - v0, v2 - v0)) + \
-                np.linalg.norm(np.cross(pnt - v3, v1 - v0)) + \
-                np.linalg.norm(np.cross(pnt - v3, v2 - v0))
-        if area - norm < eps:
+        if      np.dot(pnt - v0, v1 - v0) > 0 and np.dot(pnt - v0, v2 - v0) > 0 and \
+                np.dot(pnt - v1, v2 - v1) > 0 and np.dot(pnt - v1, v3 - v1) > 0 and \
+                np.dot(pnt - v2, v3 - v2) > 0 and np.dot(pnt - v2, v0 - v2) > 0 and \
+                np.dot(pnt - v3, v0 - v3) > 0 and np.dot(pnt - v3, v1 - v3) > 0:
             pnts.append(pnt)
     
     if len(pnts) == 2:
