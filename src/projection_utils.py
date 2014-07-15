@@ -68,12 +68,13 @@ def line_quadroid_intersection(line, corners):
             continue
         pnt = line_plane_intersection(p0, u, v0, n)
         # determine if intersection lies within face
-        if      np.dot(pnt - v0, v1 - v0) > 0 and np.dot(pnt - v0, v2 - v0) > 0 and \
-                np.dot(pnt - v1, v2 - v1) > 0 and np.dot(pnt - v1, v3 - v1) > 0 and \
-                np.dot(pnt - v2, v3 - v2) > 0 and np.dot(pnt - v2, v0 - v2) > 0 and \
-                np.dot(pnt - v3, v0 - v3) > 0 and np.dot(pnt - v3, v1 - v3) > 0:
+        norm = np.linalg.norm(np.cross(v2 - v0, v1 - v0)) + np.linalg.norm(np.cross(v2 - v3, v1 - v3))
+        area =  np.linalg.norm(np.cross(pnt - v0, v1 - v0)) + \
+                np.linalg.norm(np.cross(pnt - v0, v2 - v0)) + \
+                np.linalg.norm(np.cross(pnt - v3, v1 - v0)) + \
+                np.linalg.norm(np.cross(pnt - v3, v2 - v0))
+        if area - norm < eps:
             pnts.append(pnt)
-    
     if len(pnts) == 2:
         return pnts[0], pnts[1]
     elif len(pnts) == 1: # check, remove later

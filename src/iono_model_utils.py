@@ -96,3 +96,24 @@ def gaussian_blob(xs, ys, zs=None, pos=(0.,0.,0.), sig=(1.,1.,1.)):
         blob = np.exp(-((ii - i_m)**2 / sig_i + (jj - j_m)**2 / sig_j + (kk - k_m)**2 / sig_k)).T
     
     return blob
+
+
+def gaussian_blob_from_mesh(mesh, pos=(0.,0.,0.), sig=(1.,1.,1.)):
+    '''
+    Given an ndarray mesh of shape (L,M,N,3), returns an ndarray
+    of shape (L,M,N) whose values correspond to a gaussian function
+    evaluated at each point in the mesh.
+    '''
+    shape = mesh.shape
+    N, three = shape[0] * shape[1] * shape[2], shape[3]
+    mesh = mesh.reshape((N,3))
+    assert(three == 3)
+    blob = np.zeros((N,3))
+    pos = np.array(pos)
+    sig = np.array(sig)
+    for i in range(N):
+        blob[i,:] = 1. / (np.sqrt(2 * np.pi) * sig) * np.exp(-(mesh[i,:] - pos)**2 / sig**2 / 2.)
+    blob = blob.reshape(shape)
+    blob = np.product(blob, axis=-1)
+    blob = blob / np.max(blob)
+    return blob
