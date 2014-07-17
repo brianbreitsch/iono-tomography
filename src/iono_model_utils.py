@@ -73,6 +73,7 @@ class IRIFetcher:
             data1 = []
         return np.array(data0)
 
+# TODO: possibly delete function--not really good..
 def gaussian_blob(xs, ys, zs=None, pos=(0.,0.,0.), sig=(1.,1.,1.)):
     n_xs, n_ys, n_zs = len(xs), len(ys), len(zs)
     x2vox = 1. if n_xs < 2 else n_xs / (xs[-1] - xs[0])

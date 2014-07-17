@@ -21,7 +21,41 @@ def plot_line(ax, p0, u, tau):
     ax.plot(line[:,0], line[:,1], line[:,2], 'g')
 
 
-def plot_projmtx(ax, lats, lons, alts, projmtx, intersections=None, lines=None, line_tau=2e6, plot_mesh=False):
+def plot_projmtx(ax, xs, ys, zs, projmtx, intersections=None, lines=None, line_tau=2e6, plot_mesh=False):
+    '''
+    Plots a visual representation of a projection matrix and its values. This is
+    useful for verification of projection matrix's correctness. The function 
+    parameters all coorespond to the inputs and outputs to the function
+    `grid_projection_matrix_from_mesh`.
+    '''
+    n_lines, N = projmtx.shape
+    
+    if np.any(intersections):
+        if len(intersections) > 0:
+            ax.scatter3D(intersections[:,0], intersections[:,1], intersections[:,2])
+
+    colors = np.sum(projmtx, axis=0)
+    colors = colors.reshape((N, 1)).repeat(4, axis=1) / np.max(colors)
+    colors[:,0] = 0.
+    colors[:,3] = .75
+
+    x, y, z = np.meshgrid(xs, ys, zs)
+    pnts = np.concatenate((x[:,:,:,None], y[:,:,:,None], z[:,:,:,None]), axis=3)
+    pnts = pnts.swapaxes(0,1)
+    pnts = pnts.reshape((N, 3), order='f')
+
+    ax.scatter3D(pnts[:,0], pnts[:,1], pnts[:,2], c=colors, s=70)
+
+    if plot_mesh:
+        mesh = grid_mesh_from_centers(xs, ys, zs)
+        ax.scatter3D(mesh[:,:,:,0].flatten(), mesh[:,:,:,1].flatten(), mesh[:,:,:,2].flatten(), c=(1,0,1,.2), s=5)
+
+    if lines:
+        for line in lines:
+            plot_line(ax, line[0], line[1], line_tau)
+
+
+def plot_geodetic_projmtx(ax, lats, lons, alts, projmtx, intersections=None, lines=None, line_tau=2e6, plot_mesh=False):
     '''
     Plots a visual representation of a projection matrix and its values. This is
     useful for verification of projection matrix's correctness. The function 
