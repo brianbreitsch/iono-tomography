@@ -193,6 +193,8 @@ def intersect_lines(line1, line2):
     return u1 + tau[0] * array([sin(theta1), -cos(theta1)])
 
 
+
+# TODO this function does not belong in this file. it's also probs buggy
 def polar_grid_cell_overlap(line, lats, alts):
     '''
     Computes the overlap of a line with each cell of a polar grid. 
