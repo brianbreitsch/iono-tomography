@@ -3,6 +3,13 @@
 #
 # author: Brian Breitsch
 #
+# Notes:
+#   The functions that a program would usually call in order to create a projection matrix
+# exist towards the end of the file. The geodetic_projection_matrix and projection_matrix functions
+# call the projection_matrix_from_centers and projection_matrix_from_mesh functions. The first
+# function performs impact parameter calculation for each ray with each image voxel center, whereas
+# the second performs a overlap algorithm that assumes quadroid volumes for each voxel and uses a three
+# dimensional mesh.
 #
 
 import numpy as np
@@ -10,38 +17,72 @@ from numpy.linalg import inv, norm
 import imp
 coordinate_utils = imp.load_source('coordinate_utils', '../src/coordinate_utils.py')
 
-def line_plane_intersection(p0, u, v0, n):
-    '''
-    Calculates the intersection of a line with a plane in 3
-    dimensions.
-    
-    see: http://geomalgorithms.com/a05-_intersect-1.html
+
+def impact_parameter(x0, lines):
+    """Computes the impact parameter, i.e. closest point to the origin, for each line in
+    lines.
+
+    Parameters
     ----------
-    p0 : N-by-3 ndarray : point through which the line passes
-    u  : N-by-3 ndarray : unit vector of line direction
-    v0 : N-by-3 ndarray : point through which the plane passes
-    n  : N-by-3 ndarray : normal vector of plane
+    x0 : (3,1) ndarray
+        the point of interest/origin
+    lines : (N,2,3) ndarray
+        points which define the lines
+        
     Returns
     -------
-    N-by-3 array : intersection points of lines with planes
-    '''
+    outputs : a
+    the impact parameters of the lines
+    """
+    v = x0[None,:] - lines[:,0,:]
+    s = np.sum(v * lines[:,1,:], axis=1)
+    return lines[:,0,:] + s[:,None] * lines[:,1,:]
+
+
+def line_plane_intersection(p0, u, v0, n):
+    """Calculates the intersection of a line with a plane in 3 dimensions.
+
+    Parameters
+    ----------
+    p0 : (N,3) ndarray
+        point through which the line passes
+    u  : (N,3) ndarray
+        unit vector of line direction
+    v0 : (N,3) ndarray
+        point through which the plane passes
+    n  : (N,3) ndarray
+        normal vector of plane
+    
+    Returns
+    -------
+    output : (N,3) ndarray
+        intersection points of lines with planes
+
+    Notes
+    -----
+    see: http://geomalgorithms.com/a05-_intersect-1.html
+    """
     w = p0 - v0
     s = - np.sum(n * w) / np.sum(n * u)
     return p0 + s * u
 
 
 def line_quadroid_intersection(line, corners):
-    '''
-    Computes the coordinates and indices of intersection of a line
+    """Computes the coordinates and indices of intersection of a line
     through with a quadroid defined by corners.
+
+    Parameters
     ----------
-    line : 2-by-3 ndarray : line to project through the grid mesh
-    corners : 2-by-2-by-2-by-3 ndarray : grid mesh
+    line : (2,3) ndarray
+        line to project through the grid mesh
+    corners : (2,2,2,3) ndarray
+        grid mesh
+
     Returns
     -------
-    pnt1, pnt2 : points where the line intersects the quadroid, None
-        if no intersection occurs
-    '''
+    pnt1, pnt2 : (2,3) ndarrays
+        points where the line intersects the quadroid, None if no intersection occurs
+    """
     
     ind_x = np.array([0,1,0,1,0,1,0,1])
     ind_y = np.array([0,0,1,1,0,0,1,1])
@@ -84,25 +125,33 @@ def line_quadroid_intersection(line, corners):
     if len(pnts) == 2:
         return pnts[0], pnts[1]
     elif len(pnts) == 1: # check, remove later
-        print('1 pnt')
+        #print('1 pnt')
+        pass
     elif len(pnts) > 2:
-        print('mas pnts')
+        #print('mas pnts')
+        pass
     return None
 
 
 def grid_mesh_from_centers(xs, ys, zs):
-    '''
-    Creates a grid mesh, i.e. points that define the corners of cells
+    """Creates a grid mesh, i.e. points that define the corners of cells
     whose centers lie at the intersections of the surfaces contained
     in xs, ys, and zs.
+
+    Parameters
     ----------
-    xs : vector of scalars : horizontal grid boundaries
-    ys : vector of scalars : inward grid boundaries
-    zs : vector of scalars : vertical grid boundaries
+    xs : (X,) ndarray
+        horizontal grid boundaries
+    ys : (Y,) ndarray
+        inward grid boundaries
+    zs : (Z,) ndarray
+        vertical grid boundaries
+
     Returns
     -------
-    L-by-M-by-N-by-3 ndarray : the geodetic grid mesh
-    '''
+    (L,M,N,3) ndarray
+        the geodetic grid mesh
+    """
     nx, ny, nz = len(xs), len(ys), len(zs)
     mesh = np.zeros((nx + 1, ny + 1, nz + 1, 3))
     
@@ -134,29 +183,44 @@ def grid_mesh_from_centers(xs, ys, zs):
     return mesh
 
 
-def grid_projection_matrix_from_mesh(mesh, lines):
-    '''
-    Creates a projection matrix given the mesh which defines the grid
+def grid_centers(xs, ys, zs):
+    """Creates (N,3) ndarray of grid centers"""
+    nx, ny, nz = len(xs), len(ys), len(zs)
+    centers = np.zeros((nx, ny, nz, 3))
+    centers[:,:,:,0] = xs[:,None,None]
+    centers[:,:,:,1] = ys[None,:,None]
+    centers[:,:,:,2] = zs[None,None,:]
+    return centers.reshape((nx*ny*nz,3))
+
+
+def projection_matrix_from_3d_mesh(mesh, lines):
+    """Creates a projection matrix given the mesh which defines the grid
     boundaries and a set of lines which traverse the grid.
+
+    Parameters
     ----------
-    mesh : LxNxMx3 ndarray : grid cell boundary mesh
-    lines : P-by-2-by-3 ndarray : lines to project through the grid
+    mesh : (L,N,M,3) ndarray
+        grid cell boundary mesh
+    lines : (P,2,3) ndarray
+        lines to project through the grid
 
     Returns
     -------
-    P-by-N ndarray : the projection matrix
-    '''
+    (P,N) ndarray
+        the projection matrix
+    """
     n_x, n_y, n_z, _ = mesh.shape
-    print(mesh.shape)
-    n_lines = len(lines)
+    # print(mesh.shape)
+    n_lines = lines.shape[0]
     n_x, n_y, n_z = n_x - 1, n_y - 1, n_z - 1 
     N = n_x * n_y * n_z
-    print(N)
+    # print(N)
     
     projmtx = np.zeros((n_lines, N))
     points = []
     
-    for l, line in enumerate(lines):
+    for l in range(n_lines):
+        line = lines[l,:,:]
         for k in range(n_z):
             for j in range(n_y):
                 for i in range(n_x):
@@ -166,83 +230,124 @@ def grid_projection_matrix_from_mesh(mesh, lines):
                         continue
                     for p in pnts:
                         points.append(p)
-                    projmtx[l, i + j * n_x + k * n_x * n_y] = np.linalg.norm(pnts[1] - pnts[0])
-    return projmtx, np.array(points)
+                    projmtx[l, i*n_z*n_y + j*n_z + k] = np.linalg.norm(pnts[1] - pnts[0])
+                    #projmtx[l, i + j * n_x + k * n_x * n_y] = np.linalg.norm(pnts[1] - pnts[0])
+    return projmtx, np.array(points).squeeze()
 
 
-def geodetic_projection_matrix(lats, lons, alts, lines):
-    '''
-    Creates a projection matrix given the latitudes, longitudes, 
-    and altitudes that define a given geodetic grid, and a set of
-    lines which traverse the grid.
+def projection_matrix_from_centers(centers, lines):
+    """Creates a projection matrix by computing impact parameter given the
+    points that define the centers of image region voxels and a set of lines
+    which traverse the grid.
+
+    Note: projection matrix should be conditioned afterwards. TODO maybe in this function?
+
+    Parameters
     ----------
-    lats : vector of scalars : latitudinal grid boundaries
-    lons : vector of scalars : longitudinal grid boundaries
-    alts : vector of scalars : altitude grid boundaries
-    lines : P-by-2-by-3 ndarray : lines to project through the grid
+    centers : (N,3) ndarray
+        arrays which define the coordinates of the center of image region voxels
+    lines : (P,2,3) ndarray
+        lines to project through the image region
+
     Returns
     -------
-    P-by-N ndarray : the projection matrix
-    '''
+    outputs : (P,N) ndarray
+        the projection matrix
+    """
+
+    N, three = centers.shape
+    assert(three == 3)
+
+    L, two, three = lines.shape
+    assert(three == 3)
+    assert(two == 2)
+
+    projmtx = np.zeros((L, N))
+    points = []
+    for l in range(L):
+        for n in range(N):
+            a = impact_parameter(centers[n,:], lines[l:l+1,:,:])
+            projmtx[l,n] = np.linalg.norm(a - centers[n,:])
+            points.append(a)
+
+    # condition the projection matrix so that the closest (smallest) impact parameters become the highest matrix values
+    diff = np.linalg.norm(centers[:,None,:] - centers[None,:,:], axis=2)
+    ind = np.arange(0, diff.size, diff.shape[0]+1)
+    shape = diff.shape
+    diff = np.delete(diff.flatten(), ind).reshape(shape[0], shape[1]-1)
+    diff = np.sort(diff)
+    radius = np.mean(diff[:,:4], axis=1)
+
+    projmtx = radius[None,:] - projmtx
+    projmtx[projmtx < 0.] = 0.
+
+    return projmtx, np.array(points).squeeze()
+    # TODO could vectorize entire process with:
+    # v = x0[None,:,:] - lines[:,0,:]
+    # return np.inner(v, lines[None,:,1,:], axis=-1)
+    # for n in range(N):
+    #    projmtx[:,n] = impact_parameter(centers[n,:], 
+
+
+def projection_matrix(xs, ys, zs, lines, from_mesh=False):
+    """Creates a projection matrix given the points that define the centers of 
+    image region voxels along each axis and a set of lines which traverse the grid.
+
+    Parameters
+    ----------
+    xs, ys, zs : (N,1) ndarray
+        arrays which define the coordinates of the center of image region voxels along each axis
+    lines : (P,2,3) ndarray
+        lines to project through the image region
+
+    Returns
+    -------
+    outputs : (P,N) ndarray
+        the projection matrix
+    """
+    if from_mesh:
+        mesh = grid_mesh_from_centers(xs, ys, zs)
+        return projection_matrix_from_3d_mesh(mesh, lines)
+    else:
+        centers = grid_centers(xs, ys, zs)
+        return projection_matrix_from_centers(centers, lines)
+
+
+def geodetic_projection_matrix(lats, lons, alts, lines, from_mesh=False):
+    """Creates a projection matrix given the latitudes, longitudes, 
+    and altitudes that define a given geodetic grid, and a set of
+    lines which traverse the grid.
+
+    Parameters
+    ----------
+    lats : (X,) ndarray
+        latitudinal grid boundaries
+    lons : (Y,) ndarray
+        longitudinal grid boundaries
+    alts : (Z,) ndarray
+        altitude grid boundaries
+    lines : (P,2,3) ndarray
+        lines to project through the grid
+    from_mesh : bool
+        if True, uses lat, lon, alt to create a mesh from which quadroid intersections
+        are then used to determine cell overlap. Otherwise, does cell impact parameter
+        algorithm in `projection_matrix_from_centers`
+
+    Returns
+    -------
+    (P,N) ndarray
+        the projection matrix
+    """
     n_lats, n_lons, n_alts, n_lines = len(lats), len(lons), len(alts), len(lines)
     N = n_lats * n_lons * n_alts
     
     # get grid mesh--i.e. set of points defining grid regions
-    mesh = grid_mesh_from_centers(lats, lons, alts)
-    shape = mesh.shape
-    mesh = coordinate_utils.geo2ecef(mesh.reshape((shape[0] * shape[1] * shape[2], 3))).reshape(shape)
-    
-    #projmtx = np.zeros((n_lines, N))
-    #points = []
-    #
-    #for l, line in enumerate(lines):
-    #    for k in range(n_alts):
-    #        for j in range(n_lons):
-    #            for i in range(n_lats):
-    #                corners = mesh[i:i+2,j:j+2,k:k+2]
-    #                pnts = line_quadroid_intersection(line, corners)
-    #                if not pnts:
-    #                    continue
-    #                for p in pnts: # TODO get rid of
-    #                    points.append(p)
-    #                projmtx[l, i + j * n_lats + k * n_lats * n_lons] = np.linalg.norm(pnts[1] - pnts[0])
-    #return projmtx, np.array(points)
-    return grid_projection_matrix_from_mesh(mesh, lines)
-
-
-def impact_paramter(u, v):
-    '''Computes the impact parameter, i.e. closest point to the origin, for a given line.
-    Creates matrix :math: `\bf A = \begin{bmatrix}\cos\theta & u_x - v_x \\ \sin\theta & 
-    u_y - v_y \end{bmatrix}`. Then `\begin{bmatrix} \tau \\ \alpha \end{bmatrix} = 
-    \bf A^{-1} u`.
-    ----------
-    u : 2-tuple of the first point defining the line
-    v : 2-tuple of the second point defining the line
-        
-    Returns
-    -------
-    a : the impact parameter of the line
-    '''
-    dx, dy = v[0] - u[0], v[1] - u[1]
-    theta = pi / 2 + arctan2(dy, dx)
-    A = matrix([[cos(theta), -dx],[sin(theta), -dy]])
-    t = asarray(A.I * reshape(u, (2,1))).reshape((2,))
-    return t[0] * cos(theta), t[0] * sin(theta)
-
-
-def line_coords_to_cartesian(theta, t, d):
-    '''Computes the cartesian coordinates of a point that lies displacement d along a line
-    described by theta and t
-    ----------
-    theta : angle of the normal vector to line
-    t : orthogonal displacement of line from origin
-    d : displacement of point along the line (positive direction is to right of normal)
-    Returns
-    -------
-    (x,y) : tuple containing cartesian coordinates of the point
-    '''
-    x = t * cos(theta) + d * sin(theta)
-    y = t * sin(theta) + d * cos(theta)
-    return (x,y)
-
-
+    if from_mesh:
+        mesh = grid_mesh_from_centers(lats, lons, alts)
+        shape = mesh.shape
+        mesh = coordinate_utils.geo2ecef(mesh.reshape((shape[0] * shape[1] * shape[2], 3))).reshape(shape)
+        return projection_matrix_from_3d_mesh(mesh, lines)
+    else:
+        centers = grid_centers(lats, lons, alts)
+        centers = coordinate_utils.geo2ecef(centers)
+        return projection_matrix_from_centers(centers, lines)

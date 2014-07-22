@@ -2,6 +2,10 @@
 # Exploration
 ============================================================
 
+Not part of Repo anymore.
+
+This is my area for scratch work.
+
 This folder contains notebooks that explore different topics that will prove useful in our ionosphere tomography code.
 
 ------------------------------------------------------------

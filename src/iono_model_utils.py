@@ -1,16 +1,24 @@
 import requests
 from BeautifulSoup import BeautifulSoup
 import numpy as np
-from numpy import pi
 import scipy as sp
 from scipy import interpolate
 
+import imp
+projection_utils = imp.load_source('projection_utils', '../src/projection_utils.py')
+coordinate_utils = imp.load_source('coordinate_utils', '../src/coordinate_utils.py')
+
+
 class IRIFetcher:
-    '''This class outlines objects that can make url queries to an online version
+    """This class outlines objects that can make url queries to an online version
     of the International Reference Ionosphere (IRI) model. Given a set of
     latitudes and longitudes, an IRIFetcher object will generate a
     3-dimentional numpy grid.
-    '''
+
+    Notes
+    -----
+
+    """
     
     default_params = {
                 'model' : 'iri_2012',  'year' : 2000,         'month' : 1,
@@ -73,48 +81,53 @@ class IRIFetcher:
             data1 = []
         return np.array(data0)
 
-# TODO: possibly delete function--not really good..
-def gaussian_blob(xs, ys, zs=None, pos=(0.,0.,0.), sig=(1.,1.,1.)):
-    n_xs, n_ys, n_zs = len(xs), len(ys), len(zs)
-    x2vox = 1. if n_xs < 2 else n_xs / (xs[-1] - xs[0])
-    y2vox = 1. if n_ys < 2 else n_ys / (ys[-1] - ys[0])
-    z2vox = 1. if n_zs < 2 else n_zs / (zs[-1] - zs[0])
-    
-    i_m = (pos[0] - xs[0]) * x2vox
-    j_m = (pos[1] - ys[0]) * y2vox
-    k_m = 0. if len(pos) < 3 else (pos[2] - zs[0]) * z2vox
 
-    sig_i = sig[0] * x2vox
-    sig_j = sig[1] * y2vox
-    sig_k = 1. if len(pos) < 3 else sig[2] * z2vox
+def gaussian_blob_from_centers(centers, pos=(0.,0.,0.), sig=(1.,1.,1.)):
+    """Given an ndarray of shape (N,3), which contains the center points of voxels,
+    returns an ndarray of shape (N,) whose values correspond to a gaussian function
+    evaluated at each center point.
 
-    i, j, k = np.arange(n_xs), np.arange(n_ys), np.arange(n_zs)
-    ii, jj, kk = np.meshgrid(i,j,k)
+    Parameters
+    ----------
+    centers : ndarray of shape (N,3)
+        3d centers of voxels
+    Returns
+    -------
+    output : ndarray of shape (N,)
+        The blob values
 
-    if len(pos) < 3:
-        blob = np.exp(-((ii - i_m)**2 / sig_i + (jj - j_m)**2 / sig_j)).T
-    else:
-        blob = np.exp(-((ii - i_m)**2 / sig_i + (jj - j_m)**2 / sig_j + (kk - k_m)**2 / sig_k)).T
-    
-    return blob
-
-
-def gaussian_blob_from_mesh(mesh, pos=(0.,0.,0.), sig=(1.,1.,1.)):
-    '''
-    Given an ndarray mesh of shape (L,M,N,3), returns an ndarray
-    of shape (L,M,N) whose values correspond to a gaussian function
-    evaluated at each point in the mesh.
-    '''
-    shape = mesh.shape
-    N, three = shape[0] * shape[1] * shape[2], shape[3]
-    mesh = mesh.reshape((N,3))
-    assert(three == 3)
-    blob = np.zeros((N,3))
+    Notes
+    -----
+    """
+    N, three = centers.shape
+    blob = np.zeros((N,))
     pos = np.array(pos)
     sig = np.array(sig)
     for i in range(N):
-        blob[i,:] = 1. / (np.sqrt(2 * np.pi) * sig) * np.exp(-(mesh[i,:] - pos)**2 / sig**2 / 2.)
-    blob = blob.reshape(shape)
-    blob = np.product(blob, axis=-1)
-    blob = blob / np.max(blob)
+        blob[i] = np.exp(-np.sum((centers[i,:] - pos)**2 / sig**2 / 2.))
+    if np.max(blob) != 0:
+        blob = blob / np.max(blob)
     return blob
+
+
+def gaussian_blob(xs, ys, zs=None, pos=(0.,0.,0.), sig=(1.,1.,1.)):
+    """Given ndarrays that describe voxels centers along each axis, 
+    returns an ndarray of shape (L,M,N) whose values correspond to 
+    a gaussian function evaluated at each center point.
+
+    If geodetic is true, treats xs, ys, zs as lats, lons, alts respectively and
+    treats pos and sig as geodetic coordinates.
+    """
+    if not np.any(zs):
+        zs = np.zeros(1)
+        assert(len(pos) == 2 and len(sig) == 2)
+        pos += (0.,)
+        sig += (1.,)
+    assert(len(pos) == 3 and len(sig) == 3)
+    nx, ny, nz = len(xs), len(ys), len(zs)
+    centers = projection_utils.grid_centers(xs, ys, zs)
+    centers = centers.reshape((nx * ny * nz, 3))
+    centers = projection_utils.grid_centers(xs, ys, zs)
+    blob = gaussian_blob_from_centers(centers, pos, sig)
+    shape = (nx, ny, nz)
+    return blob.reshape(shape)
