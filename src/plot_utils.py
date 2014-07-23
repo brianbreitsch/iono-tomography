@@ -90,7 +90,7 @@ def plot_projmtx(ax, xs, ys, zs, projmtx, intersections=None, lines=None, line_t
     pnts = pnts.swapaxes(0,1)
     pnts = pnts.reshape((N, 3), order='f')
 
-    centers = projection_utils.grid_centers(xs, ys, zs)
+    centers = grid_centers(xs, ys, zs)
     centers = centers.reshape((N, 3), order='f')
     if geodetic:
         centers = geo2ecef(centers)

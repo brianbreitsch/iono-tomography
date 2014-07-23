@@ -4,6 +4,8 @@
 # email: brianbw@colostate.edu
 #
 
+import numpy as np
+
 def art(p, A, x0, relax=0.1, iters=1, only_positive=False):
     """Performs algebraic reconstruction (using ART) of image`x` given projection 
     data `p` and a projection matrix `A` which satisfies
@@ -39,6 +41,20 @@ def art(p, A, x0, relax=0.1, iters=1, only_positive=False):
             if only_positive:
                 x = np.maximum(x,0)
     return x
+# old implementation
+#
+#x = x0
+#n_rows = A.shape[0]
+#for _ in range(iters):
+#    for i in range(n_rows):
+#        normA2 = np.linalg.norm(A[i,:])**2
+#        if normA2 == 0.:
+#            continue
+#        update = relax * ((p[i] - np.sum(A[i,:] * x)) / normA2) * (A[i,:])
+#        x = x + update
+#        if only_positive:
+#            x = np.maximum(x, 0.)
+#return x
 
 
 def mart(p, A, x0, relax=0.1, iters=1, only_positive=False):
