@@ -99,3 +99,113 @@ def mart(p, A, x0, relax=0.1, iters=1, only_positive=False):
 
     
 
+def sart(p, A, x0, relax=0.1, iters=1):
+    '''
+    Performs Simultaneous Algebraic Rconstruction Technique (SART) to reconstruct the image
+    `x` given projections `p` and their relation to the image defined by
+    projection matrix `A`.
+    
+    see: Paper of A.H.Anderson and A.C.Kak " Simultaneous Algebraic Rconstruction Technique (SART)"
+    
+    parameters
+    ----------
+    p : n_lines array : the projections
+    A : n_pixels-by-n_lines array : the projection matrix
+    x0 : n_pixels array : the initial guess for the reconstructed image
+    
+    returns
+    -------
+    x : n_pixels array : the reconstructed image
+    '''
+    x = x0.copy()
+    sumR = np.sum(A,axis=1)
+    indL = sumR!=0# we remove the lines which don't intersect any point of the grid
+    Abis = A[indL,:]
+    n_rows = Abis.shape[0]
+    sumC = np.sum(Abis,axis=0)
+    indA = sumC!=0# we remove the points which are not crossed by any line
+    Atris = Abis[:,indA]
+    sumR = np.sum(Atris,axis=1)
+    sumC = np.sum(Atris,axis=0)
+    for _ in range(iters):
+        x[indA] = x[indA] + relax * np.sum((Atris*((p[indL] - Atris.dot(x[indA]))/(sumR))[:,None]),axis=0) / (sumC)
+    return x
+  
+
+def ODT(p, projmtx, basis, only_positives = False, reshaped = True):
+    '''
+    Performs Orthogonal Decomposition Technique (ODT) for finding the image
+    `x` given projections `p`, projection matrix `A` and a list of basis functions.
+    IMPORTANT: this algorithm works better with a projection matrix made using the voxels/lines
+    overlaps than with a projection matrix made wih centers/lines impact parameters.
+    
+    parameters
+    ----------
+    p : n_lines-by-one array : the projections
+    A : n_lines-by-n_pixels array : the projection matrix
+    basis : a list of basis functions of the ionosphere (3D arrays)
+    
+    returns
+    -------
+    x : n_pixels (reshaped) array : the reconstructed image
+    coeffs : n_basis array : the coefficients
+    '''
+    
+    
+    
+    n = len(basis)
+    ionoshape = basis[0].shape
+    
+    
+    #Step1: Projection						  
+    basis = np.array([phi.flatten() for phi in basis])
+    
+    projbasis = (basis).dot(projmtx.T)
+    
+    
+    #Step2: Gram-Schmidt orthogonalisation process
+    N = len(projbasis[0])
+    GSbasis = np.zeros((n,N))
+    
+    GSbasis[0] = projbasis[0]
+    GSbasis[0] = GSbasis[0]/np.linalg.norm(GSbasis[0])
+    
+    
+    for i in range(1,n):
+        v = projbasis[i]
+        j = 0
+        for e in GSbasis:
+            if np.dot(e,e)==0:
+                continue
+            product = np.dot(e, v) / np.dot(e, e)
+            pv = product * e
+            v = v - pv
+        
+        v = v/np.linalg.norm(v)
+        GSbasis[i] = v
+    
+    
+    #Step3: Decomposition
+    C = np.linalg.inv(GSbasis.dot(projbasis.T))
+    
+    projcoeffs = (GSbasis).dot(p)
+    if only_positives:
+        ind_neg = [projcoeffs<0.]
+        projcoeffs[ind_neg] = 0.
+        
+    coeffs = C.dot(projcoeffs)#We use the matrix C to get back the real coefficients
+    
+    #Step4: Reconstruction
+    Decomposed = [basis[i]*coeffs[i] for i in range(n)]
+    x = np.sum(Decomposed,axis=0)
+    if reshaped:
+        x = x.reshape((ionoshape))
+    
+    return x , coeffs
+    #TODO: if possible, make a relevant only_positive mode
+
+  
+  
+  
+  
+  

@@ -8,6 +8,9 @@ import imp
 projection_utils = imp.load_source('projection_utils', '../src/projection_utils.py')
 coordinate_utils = imp.load_source('coordinate_utils', '../src/coordinate_utils.py')
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 
 class IRIFetcher:
     """This class outlines objects that can make url queries to an online version
@@ -131,3 +134,55 @@ def gaussian_blob(xs, ys, zs=None, pos=(0.,0.,0.), sig=(1.,1.,1.)):
     blob = gaussian_blob_from_centers(centers, pos, sig)
     shape = (nx, ny, nz)
     return blob.reshape(shape)
+  
+  
+def iri_basis(lats, lons, alts, latitudes = [-11.],months = [1, 8],hours = [12.,18.,0.,6.],sunspots = [0., 100.],ionnums = [0.,300.], plot=False, normalised=True):
+    '''
+    Create a basis of IRI functions, using IRI fetcher and the data given. To be used for ODT
+    
+    parameters
+    ----------
+    Set of lists for each parameters that can be changed.
+    
+    returns
+    -------
+    basis : n_data-by-n_lats-by-n_lons-by-n_alts array : the basis to be used for ODT
+    '''
+    
+    n_lats, n_lons, n_alts = len(lats),len(lons),len(alts)
+    d_alt = alts[1]-alts[0]
+    
+    ndata = len(months)*len(hours)*len(sunspots)*len(latitudes)*len(ionnums)
+    datashape = ndata,n_lats,n_lons,n_alts,2
+
+    data = np.zeros((datashape))
+
+    i = 0
+    for lat in latitudes:
+        for month in months:
+	    for hour in hours:
+	        for sunspot in sunspots:
+		    for ionnum in ionnums:		
+		      	fetcher=IRIFetcher(params={'year':2014,'month':month,'day':1,'hour':hour,'latitude':lat,'ion_n':ionnum,'sun_n':sunspot,'start':60,'stop':1500,'step':d_alt})
+		        data[i] = fetcher.create_tec_image(lats, lons)
+		        i += 1
+    
+    
+    basis = np.array(data[:,:,:,:,0])
+    
+    if normalised:
+	basis[:] = (basis[:] - np.min(basis)) / (np.max(basis) - np.min(basis))
+                                                                
+    if plot:
+	imgbasis = [phi.reshape((n_lats, n_alts),order='') for phi in basis]
+
+	fig = plt.figure()
+	rplots = ndata/8
+
+	for i in range(1,ndata+1):
+	    ax = fig.add_subplot(rplots,8,i)
+	    ax.imshow(imgbasis[i-1].T, origin='lower', interpolation='nearest')
+  
+  
+  
+    return basis
