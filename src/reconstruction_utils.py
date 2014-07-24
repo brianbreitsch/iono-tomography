@@ -205,7 +205,40 @@ def ODT(p, projmtx, basis, only_positives = False, reshaped = True):
     #TODO: if possible, make a relevant only_positive mode
 
   
-  
+def art_function_based(p, A, x0, basis, relax=0.1, iters=1):
+    '''
+    Performs Algebraic Rconstruction Technique (ART) for finding the image
+    `x` given projections `p` and their relation to the image defined by
+    projection matrix `A`. This time we are going to use a basis of ionosphere functions.
+    
+    see: http://en.wikipedia.org/wiki/Algebraic_Reconstruction_Technique
+    
+    parameters
+    ----------
+    p : the projections
+    A : the projection matrix
+    x0 : the initial guess for the reconstructed image
+    basis : nfunctions-by-3D array : the matrix of basis functions
+    
+    returns
+    -------
+    img : the reconstructed image
+    x : the coefficients
+    '''
+    basis_fl = np.array([phi.flatten() for phi in basis])
+    x = x0.flatten()
+    x = (basis_fl).dot(x)
+    a = A.dot(basis_fl.T)
+    n_rows = A.shape[0]
+    for _ in range(iters):
+        for i in range(n_rows):
+            norma = np.linalg.norm(a[i,:])
+            if norma == 0.:
+                continue
+            x = x + relax * (p[i] - np.sum(a[i,:] * x)) / (norma**2) * (a[i,:])
+            x[x<0] = 0.
+    img = (basis_fl.T).dot(x)
+    return img, x
   
   
   
