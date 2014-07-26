@@ -8,7 +8,7 @@
 #
 import numpy as np
 from coordinate_utils import geo2ecef
-from projection_utils import grid_mesh_from_centers, grid_centers
+from projection_utils import grid_mesh_from_center_planes, grid_centers
 
 def plot_line(ax, p0, u, tau):
     """Plots a line given an origin `p0`, a unit direction vector
@@ -97,7 +97,7 @@ def plot_projmtx(ax, xs, ys, zs, projmtx, intersections=None, lines=None, line_t
     ax.scatter3D(centers[:,0], centers[:,1], centers[:,2], c=colors, s=70)
 
     if plot_mesh:
-        mesh = grid_mesh_from_centers(xs, ys, zs)
+        mesh = grid_mesh_from_center_planes(xs, ys, zs)
         if geodetic:
             shape = mesh.shape
             mesh = geo2ecef(mesh.reshape((shape[0] * shape[1] * shape[2], 3))).reshape(shape)

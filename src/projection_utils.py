@@ -133,10 +133,11 @@ def line_quadroid_intersection(line, corners):
     return None
 
 
-def grid_mesh_from_centers(xs, ys, zs):
+def grid_mesh_from_center_planes(xs, ys, zs):
     """Creates a grid mesh, i.e. points that define the corners of cells
-    whose centers lie at the intersections of the surfaces contained
-    in xs, ys, and zs.
+    whose centers lie at the intersections of the surfaces which pass through
+    points located xs, ys, and zs along respective axes and which lie normal 
+    to respective axes.
 
     Parameters
     ----------
@@ -306,7 +307,7 @@ def projection_matrix(xs, ys, zs, lines, from_mesh=False):
         the projection matrix
     """
     if from_mesh:
-        mesh = grid_mesh_from_centers(xs, ys, zs)
+        mesh = grid_mesh_from_center_planes(xs, ys, zs)
         return projection_matrix_from_3d_mesh(mesh, lines)
     else:
         centers = grid_centers(xs, ys, zs)
@@ -343,7 +344,7 @@ def geodetic_projection_matrix(lats, lons, alts, lines, from_mesh=False):
     
     # get grid mesh--i.e. set of points defining grid regions
     if from_mesh:
-        mesh = grid_mesh_from_centers(lats, lons, alts)
+        mesh = grid_mesh_from_center_planes(lats, lons, alts)
         shape = mesh.shape
         mesh = coordinate_utils.geo2ecef(mesh.reshape((shape[0] * shape[1] * shape[2], 3))).reshape(shape)
         return projection_matrix_from_3d_mesh(mesh, lines)

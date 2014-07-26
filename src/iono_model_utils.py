@@ -136,7 +136,7 @@ def gaussian_blob(xs, ys, zs=None, pos=(0.,0.,0.), sig=(1.,1.,1.)):
     return blob.reshape(shape)
   
   
-def iri_basis(lats, lons, alts, latitudes = [-11.],months = [1, 8],hours = [12.,18.,0.,6.],sunspots = [0., 100.],ionnums = [0.,300.], plot=False, normalised=True, vertical_sliced=False):
+def iri_basis(lats, lons, alts, latitudes = [-11.], months = [1, 8], hours = [12.,18.,0.,6.], sunspots = [0., 100.],ionnums = [0.,300.], plot=False, normalised=True, vertical_sliced=False):
     '''
     Create a basis of IRI functions, using IRI fetcher and the data given. To be used for ODT
     
@@ -159,12 +159,12 @@ def iri_basis(lats, lons, alts, latitudes = [-11.],months = [1, 8],hours = [12.,
     i = 0
     for latitude in latitudes:
         for month in months:
-	    for hour in hours:
-	        for sunspot in sunspots:
-		    for ionnum in ionnums:		
-		      	fetcher=IRIFetcher(params={'year':2014,'month':month,'day':1,'hour':hour,'latitude':latitude,'ion_n':ionnum,'sun_n':sunspot,'start':60,'stop':1500,'step':d_alt})
-		        data[i] = fetcher.create_tec_image(lats, lons)
-		        i += 1
+            for hour in hours:
+                for sunspot in sunspots:
+                    for ionnum in ionnums:		
+                        fetcher=IRIFetcher(params={'year':2014,'month':month,'day':1,'hour':hour,'latitude':latitude,'ion_n':ionnum,'sun_n':sunspot,'start':60,'stop':1500,'step':d_alt})
+                        data[i] = fetcher.create_tec_image(lats, lons)
+                        i += 1
     
     
     basis = np.array(data[:,:,:,:,0])
