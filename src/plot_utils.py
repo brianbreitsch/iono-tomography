@@ -1,14 +1,16 @@
-#
-# plot_utils.py
-#
-# author: Brian Breitsch
-#
-# This file contains functions useful for plotting verification of the
-# ionosphere tomography routines.
-#
+"""
+plot_utils.py
+
+@author: Brian Breitsch
+@email: brianbw@colostate.edu
+
+This file contains functions useful for plotting verification of the
+ionosphere tomography routines.
+"""
+
 import numpy as np
-from coordinate_utils import geo2ecef
-from projection_utils import grid_mesh_from_center_planes, grid_centers
+import coordinate_utils
+import projection_utils
 
 def plot_line(ax, p0, u, tau):
     """Plots a line given an origin `p0`, a unit direction vector
@@ -85,22 +87,22 @@ def plot_projmtx(ax, xs, ys, zs, projmtx, intersections=None, lines=None, line_t
     colors[:,0] = 0.
     colors[:,3] = .75
 
-    x, y, z = np.meshgrid(xs, ys, zs)
-    pnts = np.concatenate((x[:,:,:,None], y[:,:,:,None], z[:,:,:,None]), axis=3)
-    pnts = pnts.swapaxes(0,1)
-    pnts = pnts.reshape((N, 3), order='f')
+    #x, y, z = np.meshgrid(xs, ys, zs)
+    #pnts = np.concatenate((x[:,:,:,None], y[:,:,:,None], z[:,:,:,None]), axis=3)
+    #pnts = pnts.swapaxes(0,1)
+    #pnts = pnts.reshape((N, 3), order='f')
 
-    centers = grid_centers(xs, ys, zs)
-    centers = centers.reshape((N, 3), order='f')
+    centers = projection_utils.grid_centers(xs, ys, zs)
+    #centers = centers.reshape((N, 3), order='f')
     if geodetic:
-        centers = geo2ecef(centers)
+        centers = coordinate_utils.geo2ecef(centers)
     ax.scatter3D(centers[:,0], centers[:,1], centers[:,2], c=colors, s=70)
 
     if plot_mesh:
         mesh = grid_mesh_from_center_planes(xs, ys, zs)
         if geodetic:
             shape = mesh.shape
-            mesh = geo2ecef(mesh.reshape((shape[0] * shape[1] * shape[2], 3))).reshape(shape)
+            mesh = coordinate_utils.geo2ecef(mesh.reshape((shape[0] * shape[1] * shape[2], 3))).reshape(shape)
         ax.scatter3D(mesh[:,:,:,0].flatten(), mesh[:,:,:,1].flatten(), mesh[:,:,:,2].flatten(), c=(1,0,1,.2), s=5)
     
     if np.any(lines):

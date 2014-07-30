@@ -1,16 +1,17 @@
-#
-# projection_utils.py
-#
-# author: Brian Breitsch
-#
-# Notes:
-#   The functions that a program would usually call in order to create a projection matrix
-# exist towards the end of the file. The geodetic_projection_matrix and projection_matrix functions
-# call the projection_matrix_from_centers and projection_matrix_from_mesh functions. The first
-# function performs impact parameter calculation for each ray with each image voxel center, whereas
-# the second performs a overlap algorithm that assumes quadroid volumes for each voxel and uses a three
-# dimensional mesh.
-#
+"""
+projection_utils.py
+
+@author Brian Breitsch
+@email brianbw@colostate.edu
+
+Notes:
+  The functions that a program would usually call in order to create a projection matrix
+exist towards the end of the file. The geodetic_projection_matrix and projection_matrix functions
+call the projection_matrix_from_centers and projection_matrix_from_mesh functions. The first
+function performs impact parameter calculation for each ray with each image voxel center, whereas
+the second performs a overlap algorithm that assumes quadroid volumes for each voxel and uses a three
+dimensional mesh.
+"""
 
 import numpy as np
 from numpy.linalg import inv, norm

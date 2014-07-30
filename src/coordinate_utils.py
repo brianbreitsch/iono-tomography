@@ -1,3 +1,12 @@
+"""
+
+coordinate_utils.py
+
+@author Brian Breitsch
+@email brianbw@colostate.edu
+
+"""
+
 import numpy as np
 
 def ecef2geo( x0 ):
