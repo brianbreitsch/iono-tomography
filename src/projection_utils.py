@@ -278,7 +278,7 @@ def projection_matrix_from_centers(centers, lines):
     shape = diff.shape
     diff = np.delete(diff.flatten(), ind).reshape(shape[0], shape[1]-1)
     diff = np.sort(diff)
-    radius = np.mean(diff[:,:4], axis=1)
+    radius = np.mean(diff[:,:4], axis=1) / 2.
 
     projmtx = radius[None,:] - projmtx
     projmtx[projmtx < 0.] = 0.

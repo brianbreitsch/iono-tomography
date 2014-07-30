@@ -1,6 +1,7 @@
 """
- @authors: Brian Breitsch, Pierre Quéau
- @email: brianbw@colostate.edu
+@authors: Brian Breitsch
+@email: brianbw@colostate.edu
+@Pierre Queau
 """
 
 import numpy as np
