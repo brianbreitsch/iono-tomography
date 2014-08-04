@@ -11,6 +11,7 @@ ionosphere tomography routines.
 import numpy as np
 import coordinate_utils
 import projection_utils
+import matplotlib.pyplot as plt
 
 def plot_line(ax, p0, u, tau):
     """Plots a line given an origin `p0`, a unit direction vector
@@ -111,3 +112,93 @@ def plot_projmtx(ax, xs, ys, zs, projmtx, intersections=None, lines=None, line_t
         for l in range(n_lines):
             plot_line(ax, lines[l,0,:], lines[l,1,:], line_tau)
 
+
+def plot_results(fig, original=None, seed=None, reconstructions=[], titles=[], plot_error=False):
+    """Given a matplotlib figure `fig`, plots the reconstructions and other
+    relevant information.
+
+    Parameters
+    ----------
+    fig : 
+        figure axes object
+    original : (W,H) ndarray
+        the original image
+    seed : (W,H) ndarray
+        the initial/seed image
+    reconstructions : python list of (W,H) ndarrays
+        the reconstructed images
+    titles : python list of strings
+        the titles to include, if any, in the plotting of reconstructions
+    plot_error : bool
+        whether or not to plot the error images (includes rms calculation)
+    
+    Returns
+    -------
+    Notes
+    -----
+    """
+    n_reconstructions = len(reconstructions)
+
+    if plot_error:
+        # perform different plotting routine when plotting errors
+        #assert(type(original) is type(np.array))
+        errors = []
+        rms_errors = []
+        for reconstruction in reconstructions:
+            assert(original.shape == reconstruction.shape)
+            errors.append(original - reconstruction)
+            rms_errors.append(np.sqrt(np.sum(errors[-1]**2) / original.size))
+
+        R = n_reconstructions + 1
+        C = 2
+
+        norm = plt.Normalize(vmin=np.min(original), vmax=np.max(original), clip=True)
+
+        ax = fig.add_subplot(R, C, 1)
+        ax.imshow(original, origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_title('original image')
+
+        if seed is not None:
+            ax = fig.add_subplot(R, C, 2)
+            ax.imshow(seed, origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.set_xticks([]); ax.set_yticks([])
+            ax.set_title('seed image')
+
+        for i in range(n_reconstructions):
+            ax = fig.add_subplot(R, C, 2*i + 3)
+            ax.imshow(reconstructions[i], origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.set_xticks([]); ax.set_yticks([])
+            if i < len(titles):
+                ax.set_title(titles[i])
+            
+            ax = fig.add_subplot(R, C, 2*i + 4)
+            ax.imshow(errors[i], origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.set_xticks([]); ax.set_yticks([])
+            ax.set_title('rms error: {0:3.3}'.format(rms_errors[i]))
+    else:
+        R = 1
+        C = n_reconstructions + 1
+        if seed is not None:
+            C += 1
+
+        ax = fig.add_subplot(R, C, 1)
+        ax.imshow(original, origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_title('original image')
+
+        if seed is not None:
+            ax = fig.add_subplot(R, C, 2)
+            ax.imshow(original, origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.set_xticks([]); ax.set_yticks([])
+            ax.set_title('seed image')
+
+        for i in range(n_reconstructions):
+            ax = fig.add_subplot(R, C, i+3)
+            ax.imshow(reconstructions[i], origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.set_xticks([]); ax.set_yticks([])
+            if i < len(titles):
+                ax.set_title(titles[i])
+
+
+    

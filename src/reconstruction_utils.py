@@ -118,7 +118,6 @@ def mart(p, A, x0, relax=1., iters=1, tol=0):
 
 
 
-
 def odt(p, A, basis):
     """Performs Orthogonal Decomposition Technique (ODT) for finding the image
     `x` given projections `p`, projection matrix `A` and a list of basis functions.
