@@ -1,5 +1,5 @@
 """
- @authors: Brian Breitsch, Pierre Quéau
+ @authors: Brian Breitsch, Pierre Queau
  @email: brianbw@colostate.edu
 """
 
@@ -71,7 +71,7 @@ def sart(p, A, x0, relax=0.1, iters=1, only_positive=False):
     return x
 
 
-def mart(p, A, x0, relax=1., iters=1):
+def mart(p, A, x0, relax=1., iters=1, tol=0):
     """Performs multiplicitive algebraic reconstruction (MART) of image`x` given
     projection data `p` and a projection matrix `A` which satisfies
     :math:`\vec{p} = A\vec{s}`
@@ -104,11 +104,11 @@ def mart(p, A, x0, relax=1., iters=1):
     """
     x = np.copy(x0)
     n_rows = A.shape[0]
-
+    
     for it in range(iters):
         for i in range(n_rows):
             den = A.dot(x)[i]
-            if den == 0:
+            if abs(den) <= tol:
                 continue
             base = p[i] / den
             exp = relax / np.max(A[i,:]) * A[i,:]
@@ -116,7 +116,10 @@ def mart(p, A, x0, relax=1., iters=1):
     return x
 
 
-def odt(y, A, phi):
+
+
+
+def odt(p, A, basis):
     """Performs Orthogonal Decomposition Technique (ODT) for finding the image
     `x` given projections `p`, projection matrix `A` and a list of basis functions.
     IMPORTANT: this algorithm works better with a projection matrix made using the voxels/lines
@@ -124,7 +127,7 @@ def odt(y, A, phi):
     
     parameters
     ----------
-    y : (M,) ndarray : projections of image
+    p : (M,) ndarray : projections of image
     A : (M,N) ndarray : the projection matrix
     phi : (N,L) ndarray : matrix of basis functions, defined over pixel basis
     
@@ -132,13 +135,18 @@ def odt(y, A, phi):
     -------
     x : (N,) ndarray : the reconstructed image
     """
+    
+    phi = np.array([phi.flatten() for phi in basis]).T
+    
     # form projections of bases
     B = A.dot(phi)
     # perform orthogonalization via QR decomposition
     Q, R = np.linalg.qr(B, 'reduced')
     # reconstruct
     if R.shape[0] == R.shape[1]:
-        return np.dot(np.linalg.inv(R), np.dot(Q.T, p))
+        coeffs = np.dot(np.linalg.inv(R), np.dot(Q.T, p))
+        x = phi.dot(coeffs)
+	return x, coeffs
     else:
         return np.dot(np.linalg.pinv(R), np.dot(Q.T, p))
 
@@ -247,3 +255,152 @@ def art_function_based(p, A, x0, basis, relax=0.1, iters=1):
 ##TODO: if possible, make a relevant only_positive mode
 
 
+def cmart(p, A, B, x0, relax=1., iters=1,tol =1):
+    """
+    Performs constrained multiplicitive algebraic reconstruction technique (CMART) of image`x`
+    given projection data `p` and a projection matrix `A` which satisfies: math:`\vec{p} = A\vec{s}`
+    
+    Parameters
+    ----------
+    p : array_like, dtype=float
+        Array containing set of projection data.
+    A : array_like, dtype=float
+        Projection matrix for p.
+    B : Constrained matrix
+    x0 : array_like, dtype=float
+        Initial guess for image vector.
+    relax : relaxation parameter
+    iters : int, optional
+        The number of iterations to perform during reconstruction.
+    only_positive : boolean, optional
+        Constrain reconstruction so that only positive values are allowed in
+        the image.
+        
+    Returns
+    -------
+    x : array_like, dtype=float
+        The reconstructed image.
+
+   
+    Implementation: see DEBAO-SANZHI "A ionospheric tomographic algorithm-constrained multiplicitive algebraic 
+    reconstruction technique".
+    """
+    x = np.copy(x0)
+    n_rows = A.shape[0]
+    B = B.reshape((B.shape[0],B.shape[0]))
+    
+    pbis = np.concatenate((p,np.zeros(A.shape[1])))
+    Abis = np.concatenate((A,B))
+    x = mart(pbis,Abis,x0,iters=iters,tol=tol)
+                          
+    return x
+
+def constrained_matrix(n_lats,n_lons,n_alts):
+    """
+    Create a matrix coresponding to the constraints we want to use. Here we want to get a smother 
+    image, therefore we are going to use a matrix similar to what is described in the folowing 
+    paper: DEBAO-SANZHI "A ionospheric tomographic algorithm-constrained multiplicitive algebraic 
+    reconstruction technique".
+    
+    Parameters
+    ----------
+    n_lats, n_lons, n_alts: dimension of the ionosphere slice we are trying to recreate.
+    
+    Returns
+    -------
+    B: the constrained matrix, it represent for each point the weight of every other points used for
+    the constrains.
+    """
+    n_lats,n_lons,n_alts = int(n_lats), int(n_lons), int(n_alts)
+    
+    B = np.zeros((n_lats*n_lons*n_alts,n_lats,n_lons,n_alts))
+    
+    
+    for i in range(n_lats*n_lons*n_alts):
+        a = i%n_lats
+        b = i/n_lats
+        
+        if a==0:
+            if b == 0:
+                B[i,a,0,b] = 3
+                B[i,a+1,0,b] = B[i,a,0,b+1] = B[i,a+1,0,b+1] = -1
+            if b == n_alts-1:
+                B[i,a,0,b] = 3
+                B[i,a+1,0,b] = B[i,a,0,b-1] = B[i,a+1,0,b-1] = -1
+            if b!=0 and b!=n_alts-1:
+                B[i,a,0,b] = 5
+                B[i,a+1,0,b] = B[i,a,0,b-1] = B[i,a+1,0,b-1] = B[i,a+1,0,b+1] = B[i,a,0,b+1] = -1
+        if a==n_lats-1:
+            if b == 0:
+                B[i,a,0,b] = 3
+                B[i,a-1,0,b] = B[i,a,0,b+1] = B[i,a-1,0,b+1] = -1
+            if b == n_alts-1:
+                B[i,a,0,b] = 3
+                B[i,a-1,0,b] = B[i,a,0,b-1] = B[i,a-1,0,b-1] = -1
+            if b!=0 and b!=n_alts-1:
+                B[i,a,0,b] = 5
+                B[i,a-1,0,b] = B[i,a,0,b-1] = B[i,a-1,0,b-1] = B[i,a-1,0,b+1] = B[i,a,0,b+1] = -1
+        if b==0:
+            if a == 0:
+                B[i,a,0,b] = 3
+                B[i,a+1,0,b] = B[i,a,0,b+1] = B[i,a+1,0,b+1] = -1
+            if a == n_lats-1:
+                B[i,a,0,b] = 3
+                B[i,a-1,0,b] = B[i,a,0,b+1] = B[i,a-1,0,b+1] = -1
+            if a!=0 and a!=n_lats-1:
+                B[i,a,0,b] = 5
+                B[i,a+1,0,b] = B[i,a-1,0,b] = B[i,a-1,0,b+1] = B[i,a+1,0,b+1] = B[i,a,0,b+1] = -1
+        
+        if b==n_alts-1:
+            if a == 0:
+                B[i,a,0,b] = 3
+                B[i,a+1,0,b] = B[i,a,0,b-1] = B[i,a+1,0,b-1] = -1
+            if a == n_lats-1:
+                B[i,a,0,b] = 3
+                B[i,a-1,0,b] = B[i,a,0,b-1] = B[i,a-1,0,b-1] = -1
+            if a!=0 and a!=n_lats-1:
+                B[i,a,0,b] = 5
+                B[i,a+1,0,b] = B[i,a-1,0,b] = B[i,a-1,0,b-1] = B[i,a+1,0,b-1] = B[i,a,0,b-1] = -1
+        if b!=0 and b !=n_alts-1 and a !=0 and a!=n_lats-1:
+            B[i,a,0,b] = 8
+            B[i,a+1,0,b] = B[i,a-1,0,b] = B[i,a-1,0,b-1] = B[i,a+1,0,b-1] = B[i,a,0,b-1] \
+                                    = B[i,a,0,b+1] = B[i,a-1,0,b+1] = B[i,a+1,0,b+1] = -1
+    return B*1000
+        
+    
+
+
+
+def constrained_matrix_horizontal(n_lats,n_lons,n_alts):
+    """
+    Create a matrix coresponding to the constraints we want to use. Here we want to get a smother 
+    image, therefore we are going to use a matrix similar to what is described in the folowing 
+    paper: DEBAO-SANZHI "A ionospheric tomographic algorithm-constrained multiplicitive algebraic 
+    reconstruction technique".
+    !!This time we only make the image horizontaly smother!!
+    
+    Parameters
+    ----------
+    n_lats, n_lons, n_alts: dimension of the ionosphere slice we are trying to recreate.
+    
+    Returns
+    -------
+    B: the constrained matrix, it represent for each point the weight of every other points used for
+    the constrains.
+    """
+    n_lats,n_lons,n_alts = int(n_lats), int(n_lons), int(n_alts)
+    
+    B = np.zeros((n_lats*n_lons*n_alts,n_lats,n_lons,n_alts))
+    
+    for i in range(n_lats*n_lons*n_alts):
+        a = i%n_lats
+        b = i/n_lats
+        
+        
+        if a==0 or a == n_lats-1:
+            continue
+        B[i,a,0,b] = 2
+        B[i,a-1,0,b] = B[i,a+1,0,b] = -1
+        
+    return B
+        
