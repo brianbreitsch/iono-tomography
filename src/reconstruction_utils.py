@@ -72,7 +72,7 @@ def sart(p, A, x0, relax=0.1, iters=1, only_positive=False):
     return x
 
 
-def mart(p, A, x0, relax=1., iters=1):
+def mart(p, A, x0, relax=1., iters=1, tol=None):
     """Performs multiplicitive algebraic reconstruction (MART) of image`x` given
     projection data `p` and a projection matrix `A` which satisfies
     :math:`\vec{p} = A\vec{s}`
@@ -106,10 +106,13 @@ def mart(p, A, x0, relax=1., iters=1):
     x = np.copy(x0)
     n_rows = A.shape[0]
 
+    if tol is None:
+        tol = 1e-12 * np.mean(p)
+
     for it in range(iters):
         for i in range(n_rows):
-            den = A.dot(x)[i]
-            if den == 0:
+            den = A[i,:].dot(x)
+            if den < tol:
                 continue
             base = p[i] / den
             exp = relax / np.max(A[i,:]) * A[i,:]
@@ -119,7 +122,7 @@ def mart(p, A, x0, relax=1., iters=1):
 
 def odt(y, A, phi):
     """Performs Orthogonal Decomposition Technique (ODT) for finding the image
-    `x` given projections `p`, projection matrix `A` and a list of basis functions.
+    `x` GIven projections `p`, projection matrix `A` and a list of basis functions.
     IMPORTANT: this algorithm works better with a projection matrix made using the voxels/lines
     overlaps than with a projection matrix made wih centers/lines impact parameters.
     

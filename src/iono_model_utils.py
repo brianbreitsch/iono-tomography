@@ -4,7 +4,7 @@ iono_model_utils.py
 @author Brian Breitsch
 @email brianbw@colostate.edu
 
-@author Pierre Quéau
+@author Pierre Queau
 """
 
 
