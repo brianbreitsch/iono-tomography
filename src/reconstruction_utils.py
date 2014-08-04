@@ -116,7 +116,7 @@ def mart(p, A, x0, relax=1., iters=1, tol=0):
     return x
 
 
-def smart(p, A, x0, relax=1., iters=1, tol=0.1):
+def smart(p, A, x0, relax=0.01, iters=100, tol=0.1):
     """
     Performs simultaneous multiplicitive algebraic reconstruction (MART) of image`x` given
     projection data `p` and a projection matrix `A` which satisfies
@@ -147,6 +147,8 @@ def smart(p, A, x0, relax=1., iters=1, tol=0.1):
     
     ind = p>tol
     
+    relax = relax/(np.max(A))
+    
     
     for it in range(iters):
         
@@ -154,7 +156,7 @@ def smart(p, A, x0, relax=1., iters=1, tol=0.1):
         ind2 = den>0
         ind2 =  ind2 * ind
         base = (p[ind2] / den[ind2])[:,None]
-        exp = relax /(np.max(A[ind2,:]))*A[ind2,:]
+        exp = relax *A[ind2,:]
         temp =np.product(base**exp,axis=0)
         temp = temp 
         x = x * temp 
@@ -334,7 +336,7 @@ def cmart(p, A, B, x0, relax=1., iters=1,tol =1):
     n_rows = A.shape[0]
     B = B.reshape((B.shape[0],B.shape[0]))
     
-    pbis = np.concatenate((p,np.zeros(A.shape[1])))
+    pbis = np.concatenate((p,np.ones(A.shape[1])*0.1))
     Abis = np.concatenate((A,B))
     x = mart(pbis,Abis,x0,iters=iters,tol=tol)
                           
