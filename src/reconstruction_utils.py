@@ -116,6 +116,52 @@ def mart(p, A, x0, relax=1., iters=1, tol=0):
     return x
 
 
+def smart(p, A, x0, relax=1., iters=1, tol=0.1):
+    """
+    Performs simultaneous multiplicitive algebraic reconstruction (MART) of image`x` given
+    projection data `p` and a projection matrix `A` which satisfies
+    :math:`\vec{p} = A\vec{s}`
+    
+    Parameters
+    ----------
+    p : array_like, dtype=float
+        Array containing set of projection data.
+    A : array_like, dtype=float
+        Projection matrix for p.
+    x0 : array_like, dtype=float
+        Initial guess for image vector.
+    relax : relaxation parameter
+    iters : int, optional
+        The number of iterations to perform during reconstruction.
+    
+        
+    Returns
+    -------
+    x : array_like, dtype=float
+        The reconstructed image.
+
+    
+    """
+    x = np.copy(x0)
+    n_rows = A.shape[0]
+    
+    ind = p>tol
+    
+    
+    for it in range(iters):
+        
+        den = A.dot(x)
+        ind2 = den>0
+        ind2 =  ind2 * ind
+        base = (p[ind2] / den[ind2])[:,None]
+        exp = relax /(np.max(A[ind2,:]))*A[ind2,:]
+        temp =np.product(base**exp,axis=0)
+        temp = temp 
+        x = x * temp 
+    
+    return x
+
+
 
 
 def odt(p, A, basis):
