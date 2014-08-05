@@ -153,6 +153,7 @@ def iri_basis(lats, lons, alts, latitudes = [-11.], months = [1, 8], hours = [12
     parameters
     ----------
     Set of lists for each parameters that can be changed.
+    lats, lons, alts : coordinates of the observed ionosphere (alts must be in meters!!)
     
     returns
     -------
@@ -160,6 +161,7 @@ def iri_basis(lats, lons, alts, latitudes = [-11.], months = [1, 8], hours = [12
     '''
     
     n_lats, n_lons, n_alts = len(lats),len(lons),len(alts)
+    altss = alts/1000
     d_alt = (alts[1]-alts[0])/1000
     ndata = len(months)*len(hours)*len(sunspots)*len(latitudes)*len(ionnums)
     datashape = ndata,n_lats,n_lons,n_alts,2
@@ -172,7 +174,7 @@ def iri_basis(lats, lons, alts, latitudes = [-11.], months = [1, 8], hours = [12
             for hour in hours:
                 for sunspot in sunspots:
                     for ionnum in ionnums:		
-                        fetcher=IRIFetcher(params={'year':2014,'month':month,'day':1,'hour':hour,'latitude':latitude,'ion_n':ionnum,'sun_n':sunspot,'start':60,'stop':1500,'step':d_alt})
+                        fetcher=IRIFetcher(params={'year':2014,'month':month,'day':1,'hour':hour,'latitude':latitude,'ion_n':ionnum,'sun_n':sunspot,'start':altss[0],'stop':altss[-1]+d_alt,'step':d_alt})
                         data[i] = fetcher.create_tec_image(lats, lons)
                         i += 1
     
@@ -191,7 +193,7 @@ def iri_basis(lats, lons, alts, latitudes = [-11.], months = [1, 8], hours = [12
 	for j in range(ndata):
 	    for i in range(n_lats):
 		basisV[j*n_lats+i,i,:,:] = basis[j,i,:,:]
-	basis = basiV
+	basis = basisV
                                                                 
     if plot:
 	imgbasis = [phi.reshape((n_lats, n_alts),order='') for phi in basis]
