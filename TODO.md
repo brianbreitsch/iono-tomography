@@ -16,7 +16,5 @@
 
 - make images suck less
 - complete GIT exploration notebook
-- Bokeh exploration notebook
 - Julia??? exploration notebook
-- CythonCpeed notebook (for fast projection algorithms)
 
