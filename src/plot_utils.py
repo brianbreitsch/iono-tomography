@@ -113,7 +113,7 @@ def plot_projmtx(ax, xs, ys, zs, projmtx, intersections=None, lines=None, line_t
             plot_line(ax, lines[l,0,:], lines[l,1,:], line_tau)
 
 
-def plot_results(fig, original=None, seed=None, reconstructions=[], titles=[], plot_error=False):
+def plot_results(fig, original=None, seed=None, reconstructions=[], titles=[], plot_error=False, cmap='gray'):
     """Given a matplotlib figure `fig`, plots the reconstructions and other
     relevant information.
 
@@ -138,6 +138,7 @@ def plot_results(fig, original=None, seed=None, reconstructions=[], titles=[], p
     -----
     """
     n_reconstructions = len(reconstructions)
+    norm = plt.Normalize(vmin=np.min(original), vmax=np.max(original), clip=True)
 
     if plot_error:
         # perform different plotting routine when plotting errors
@@ -152,28 +153,26 @@ def plot_results(fig, original=None, seed=None, reconstructions=[], titles=[], p
         R = n_reconstructions + 1
         C = 2
 
-        norm = plt.Normalize(vmin=np.min(original), vmax=np.max(original), clip=True)
-
         ax = fig.add_subplot(R, C, 1)
-        ax.imshow(original, origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+        ax.imshow(original, origin='lower', interpolation='nearest', cmap=cmap, norm=norm)
         ax.set_xticks([]); ax.set_yticks([])
         ax.set_title('original image')
 
         if seed is not None:
             ax = fig.add_subplot(R, C, 2)
-            ax.imshow(seed, origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.imshow(seed, origin='lower', interpolation='nearest', cmap=cmap, norm=norm)
             ax.set_xticks([]); ax.set_yticks([])
             ax.set_title('seed image')
 
         for i in range(n_reconstructions):
             ax = fig.add_subplot(R, C, 2*i + 3)
-            ax.imshow(reconstructions[i], origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.imshow(reconstructions[i], origin='lower', interpolation='nearest', cmap=cmap, norm=norm)
             ax.set_xticks([]); ax.set_yticks([])
             if i < len(titles):
                 ax.set_title(titles[i])
             
             ax = fig.add_subplot(R, C, 2*i + 4)
-            ax.imshow(errors[i], origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.imshow(errors[i], origin='lower', interpolation='nearest', cmap=cmap, norm=norm)
             ax.set_xticks([]); ax.set_yticks([])
             ax.set_title('rms error: {0:3.3}'.format(rms_errors[i]))
     else:
@@ -183,19 +182,19 @@ def plot_results(fig, original=None, seed=None, reconstructions=[], titles=[], p
             C += 1
 
         ax = fig.add_subplot(R, C, 1)
-        ax.imshow(original, origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+        ax.imshow(original, origin='lower', interpolation='nearest', cmap=cmap, norm=norm)
         ax.set_xticks([]); ax.set_yticks([])
         ax.set_title('original image')
 
         if seed is not None:
             ax = fig.add_subplot(R, C, 2)
-            ax.imshow(original, origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.imshow(original, origin='lower', interpolation='nearest', cmap=cmap, norm=norm)
             ax.set_xticks([]); ax.set_yticks([])
             ax.set_title('seed image')
 
         for i in range(n_reconstructions):
             ax = fig.add_subplot(R, C, i+3)
-            ax.imshow(reconstructions[i], origin='lower', interpolation='nearest', cmap='gray', norm=norm)
+            ax.imshow(reconstructions[i], origin='lower', interpolation='nearest', cmap=cmap, norm=norm)
             ax.set_xticks([]); ax.set_yticks([])
             if i < len(titles):
                 ax.set_title(titles[i])
