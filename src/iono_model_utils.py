@@ -146,14 +146,14 @@ def gaussian_blob(xs, ys, zs=None, pos=(0.,0.,0.), sig=(1.,1.,1.)):
     return blob.reshape(shape)
   
   
-def iri_basis(lats, lons, alts, latitudes = [-11.], months = [1, 8], hours = [12.,18.,0.,6.], sunspots = [0., 100.],ionnums = [0.,300.], plot=False, normalised=True, vertical_sliced=False):
+def iri_basis(lats, lons, alts, months = [1, 8], hours = [12.,18.,0.,6.], sunspots = [50., 100.],ionnums = [50.,300.], plot=False, normalised=True, vertical_sliced=False, unique=False, save=False, name=None):
     '''
     Create a basis of IRI functions, using IRI fetcher and the data given. To be used for ODT
     
     parameters
     ----------
     Set of lists for each parameters that can be changed.
-    lats, lons, alts : coordinates of the observed ionosphere (alts must be in meters!!)
+    lats, lons, alts : coordinates of the observed ionosphere
     
     returns
     -------
@@ -161,50 +161,121 @@ def iri_basis(lats, lons, alts, latitudes = [-11.], months = [1, 8], hours = [12
     '''
     
     n_lats, n_lons, n_alts = len(lats),len(lons),len(alts)
-    altss = alts/1000
-    d_alt = (alts[1]-alts[0])/1000
-    ndata = len(months)*len(hours)*len(sunspots)*len(latitudes)*len(ionnums)
-    datashape = ndata,n_lats,n_lons,n_alts,2
+    fig = plt.figure()
+    if save:
+        assert name != None, 'no name'
+    
+    if alts[0]>10000:#In case alts is in meters and not kilometers
+        altss = alts*0.001
+        d_alt = (alts[1]-alts[0])*0.001
+    else:
+        altss = alts
+        d_alt = (alts[1]-alts[0])
+    lons = lons + 180.
+
+    if unique:
+        months, hours, sunspots, ionnums = [months[0]],[hours[0]],[sunspots[0]],[ionnums[0]]
+    
+    n_data = len(months)*len(hours)*len(sunspots)*len(ionnums)
+    datashape = n_data,n_lats,n_lons,n_alts,2
 
     data = np.zeros((datashape))
+    
+	
 
     i = 0
-    for latitude in latitudes:
-        for month in months:
-            for hour in hours:
-                for sunspot in sunspots:
-                    for ionnum in ionnums:		
-                        fetcher=IRIFetcher(params={'year':2014,'month':month,'day':1,'hour':hour,'latitude':latitude,'ion_n':ionnum,'sun_n':sunspot,'start':altss[0],'stop':altss[-1]+d_alt,'step':d_alt})
-                        data[i] = fetcher.create_tec_image(lats, lons)
-                        i += 1
+    for month in months:
+        for hour in hours:
+            for sunspot in sunspots:
+                for ionnum in ionnums:		
+                    fetcher=IRIFetcher(params={'year':2014,'month':month,'day':1,'hour':hour,'ion_n':ionnum,'sun_n':sunspot,'start':altss[0],'stop':altss[-1]+d_alt,'step':d_alt})
+                    data[i] = fetcher.create_tec_image(lats, lons)
+                    i += 1
     
     
     basis = np.array(data[:,:,:,:,0])
     
     if normalised:
-	basis[:] = (basis[:] - np.min(basis)) / (np.max(basis) - np.min(basis))
-	
+        basis = basis.reshape((n_data, n_lats*n_lons*n_alts))
+        basis = (basis - np.min(basis,axis=1)[:,None]) / (np.max(basis,axis=1) - np.min(basis,axis=1))[:,None]
+        basis = basis.reshape((n_data, n_lats, n_lons, n_alts))
 	
     if vertical_sliced:
-
-	basisVshape = n_lats*ndata, n_lats, n_lons, n_alts
-	basisV = np.zeros((basisVshape))
+        basisVshape = n_lats*n_data, n_lats, n_lons, n_alts
+        basisV = np.zeros((basisVshape))
+        for j in range(n_data):
+            for i in range(n_lats):
+                basisV[j*n_lats+i,i,:,:] = basis[j,i,:,:]
+	    basis = basisV
+    imgbasis = basis.reshape(n_data,n_lats,n_alts)
 	
-	for j in range(ndata):
-	    for i in range(n_lats):
-		basisV[j*n_lats+i,i,:,:] = basis[j,i,:,:]
-	basis = basisV
-                                                                
     if plot:
-	imgbasis = [phi.reshape((n_lats, n_alts),order='') for phi in basis]
-
-	fig = plt.figure()
-	rplots = ndata/8
-
-	for i in range(1,ndata+1):
-	    ax = fig.add_subplot(rplots,8,i)
-	    ax.imshow(imgbasis[i-1].T, origin='lower', interpolation='nearest')
-  
-  
-  
+        fig = plt.figure()
+        rplots = (n_data+7)/8
+        if unique:
+            a = 1
+        else:
+            a = 8
+        for i in range(1,n_data+1):
+            ax = fig.add_subplot(rplots,a,i)
+            ax.imshow(imgbasis[i-1,:,:].T, origin='lower', interpolation='nearest')
+            ax.set_xticks([]); ax.set_yticks([])
+    if unique:
+        basis = basis[0]
+    if save:
+        target = open (name, "wb") 
+        np.save(target,basis)
+        target.close()
+    
     return basis
+  
+def iono_simulation_with_blobs(lats, lons, alts, base_grid, n_blobs=1, values=-1, pos_blobs=-1, sig_blobs = -1, plot_show=False, high_low=-1):
+    """
+    Produce a simulation of an ionosphere which will be the one given (base_grid) modified by blob of low concentration or high concentration.
+    
+    Parameters
+    ----------
+    lats, lons, alts : coordinates of the observed ionosphere
+    base_grid : the seed ionosphere
+    
+    Returns
+    -------
+    iono_simulation : the new ionosphere.
+    """
+    
+    centers = projection_utils.grid_centers(lats, lons, alts)
+    
+    if pos_blobs == -1:
+        pos_blobs = np.zeros((n_blobs,3))
+        alt_blob = alts[-1]*0.5
+        lats_blob = np.zeros((n_blobs))
+	for i in range(n_blobs):
+	    lats_blob[i] = lats[0] + (lats[-1]-lats[0])*(i/(n_blobs*1.)+0.1)
+	    pos_blobs[i] = np.array([lats_blob[i],lons[0],alt_blob])
+    if values == -1:
+        values = np.ones((n_blobs))*0.3*high_low
+    else:
+        values = np.array(values)
+    assert values.size == n_blobs, 'not enough or to many values'
+	
+    if sig_blobs == -1:
+        sig_blobs = np.ones((n_blobs,3))*np.array([5.,5.,5e4])[None,:]
+	
+    
+    blob = np.zeros((n_blobs,len(lats),len(lons),len(alts)))
+    for i in range(n_blobs):
+        blob[i] = gaussian_blob_from_centers(centers, pos_blobs[i], sig_blobs[i]).reshape((len(lats),len(lons),len(alts)))
+    
+    iono_simulation = np.copy(base_grid) 
+    for i in range(n_blobs):
+        iono_simulation += blob[i]*values[i]*np.max(base_grid)
+        iono_simulation = (iono_simulation - np.min(iono_simulation)) / (np.max(iono_simulation) - np.min(iono_simulation))
+    
+    
+    if plot_show:
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        ax.imshow(iono_simulation[:,0,:].T, origin='lower', interpolation='nearest')
+        ax.set_xticks([]); ax.set_yticks([])
+	
+    return iono_simulation
